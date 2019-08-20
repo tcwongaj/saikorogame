@@ -1,3 +1,5 @@
+This is a solution to the question given by Ganapati Neo.
+
 # saikorogame
 
 ### Frontend: 
