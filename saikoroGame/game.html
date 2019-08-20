@@ -1,0 +1,203 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <style>
+          table, th, td {
+            border: 1px solid black;
+          }
+          #gresult {
+            color: red;
+          }
+        </style>
+    </head>
+    <body>
+      <h1>Saikoro game</h1>
+      <p id="message">Status: </p>
+      <h>Wecome, </h><h id="username">player</h>
+      <br/>
+      <h>Highest Score: </h><h id="hscore">0</h>
+      <br/>
+      <h2 id="gresult"></h2>
+
+      <table>
+        <tr>
+          <th colspan="2"><h>your dices</h></th>
+        </tr>
+        <tr>
+          <td id="pd1">-</td>
+          <td id="pd2">-</td>
+        </tr>
+        <tr>
+          <td id="pds" colspan="2"> Your score: - </td>
+        </tr>
+        <tr>
+          <th colspan="2"><h>CPU's dices</h></th>
+        </tr>
+        <tr>
+          <td id="cd1">-</td>
+          <td id="cd2">-</td>
+        </tr>
+        <tr>
+          <td id="cds" colspan="2"> CPU score: - </td>
+        </tr>
+      </table>
+      <br/>
+      <br/>
+      <button onclick="roll()" id="rollBtn"> Roll! </button>
+      <br/>
+      <button onclick="playagain();" id="reloadBtn" disabled> Play again! </button>
+      <br/>
+      <button onclick="logout()"> logout </button>
+
+    <script type="text/javascript">
+     //判断当前浏览器是否支持WebSocket
+
+      var highscore = 0;
+      var gameonprogress = 1;
+
+      if('WebSocket' in window){
+        websocket = new WebSocket("ws://localhost:8887");
+        console.log("link success")
+      }else{
+        alert('Not support websocket')
+      }
+
+      websocket.onerror = function(){
+        setMessageInnerHTML("Status: error");
+      }
+
+      websocket.onopen = function(event){
+        setMessageInnerHTML("Status: Server Connected");
+        if (localStorage.getItem('username_') !== null) {
+          document.getElementById('username').innerHTML = localStorage.getItem('username_');
+        }
+
+        var message = "3," + localStorage.getItem('username_');
+        websocket.send(message);
+
+
+      }
+
+      websocket.onmessage = function(event){
+        var message = event.data.split(",");
+        console.log(message[0]);
+
+        switch(message[0]) {
+          case "0":
+            <!--setMessageInnerHTML("Status: no such user, please register");-->
+            break;
+          case "1":
+            <!--setMessageInnerHTML("Status: redirecting");-->
+            break;
+          case "2":
+            <!--setMessageInnerHTML("Status: wrong password");-->
+            break;
+          case "3":
+            if (message[1]) {
+              highscore = message[1];
+              document.getElementById('hscore').innerHTML = highscore;
+            }
+            break;
+          case "4":
+            document.getElementById('pd1').innerHTML = message[1];
+            document.getElementById('pd2').innerHTML = message[2];
+            document.getElementById('cd1').innerHTML = message[3];
+            document.getElementById('cd2').innerHTML = message[4];
+            document.getElementById('pds').innerHTML = " Your score: " + message[5] + " ";
+            document.getElementById('cds').innerHTML = " CPU score: " + message[6] + " ";
+            if (message[7] == "0"){
+              document.getElementById('gresult').innerHTML = "Draw!";
+            } else if (message[7] == "1") {
+              document.getElementById('gresult').innerHTML = "You win!";
+            } else {
+              document.getElementById('gresult').innerHTML = "CPU win!";
+            }
+            if  (parseInt(message[5]) >= parseInt(highscore)) {
+              highscore = message[5];
+              document.getElementById('hscore').innerHTML = highscore;
+            }
+            break;
+
+        }
+
+
+      }
+
+      websocket.onclose = function(){
+        setMessageInnerHTML("Status: close");
+      }
+
+      window.onbeforeunload = function(){
+        websocket.close();
+      }
+
+      function setMessageInnerHTML(innerHTML){
+        document.getElementById('message').innerHTML = innerHTML + '<br/>';
+      }
+
+      function closeWebSocket(){
+        websocket.close();
+        localStorage.removeItem('username_');
+        localStorage.removeItem('timeOut_');
+        alert("You are now logged out.");
+        window.location.href = "login.html";
+      }
+
+      <!--
+      function roll(){
+        var message = '4,' + localStorage.getItem('username_');
+        websocket.send(message);
+        document.getElementById("rollBtn").disabled = true;
+        document.getElementById("reloadBtn").disabled = false;
+        gameonprogress = 0;
+
+      }
+
+      function playagain(){
+        document.getElementById("reloadBtn").disabled = true;
+        document.getElementById("rollBtn").disabled = false;
+        var message = "3," + localStorage.getItem('username_');
+        websocket.send(message);
+        gameonprogress = 1;
+
+      }
+
+      function logout(){
+        if (gameonprogress == 1){
+          var message = '5,' + localStorage.getItem('username_');
+          websocket.send(message);
+        }
+        closeWebSocket();
+      }
+
+      -->
+
+      var inactivityTime = function () {
+        var time;
+        window.onload = resetTimer;
+        // DOM Events
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+
+        function logout2() {
+          if (gameonprogress == 1){
+            var message = '5,' + localStorage.getItem('username_');
+            websocket.send(message);
+          }
+          closeWebSocket();
+        }
+
+        function resetTimer() {
+          clearTimeout(time);
+          time = setTimeout(logout2, (localStorage.getItem('timeOut_')*1000))
+          // 1000 milliseconds = 1 second
+        }
+      };
+
+      inactivityTime();
+
+    </script>
+
+    </body>
+</html>

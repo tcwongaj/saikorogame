@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <body>
+      <h1>Saikoro game</h1>
+      <p id="message">Status: </p>
+      <h>User name: </h><input id="username" type="text" /><br/>
+      <h>Password: </h><input id="password" type="text" /><br/>
+      <h>Session timeout: </h><input id="timeOut" type="text" value="60" /><h> s</h><br/>
+      <button id="loginBtn" onclick="login()"> Login </button>
+      <button id="registerBtn" onclick="register()"> Register </button><br/>
+      <button id="closeBtn" onclick="closeWebSocket()"> Close </button>
+
+    <script type="text/javascript">
+     //判断当前浏览器是否支持WebSocket
+      if('WebSocket' in window){
+        websocket = new WebSocket("ws://localhost:8887");
+        console.log("link success")
+      }else{
+        alert('Not support websocket')
+      }
+
+      websocket.onerror = function(){
+        setMessageInnerHTML("Status: error");
+      };
+
+      websocket.onopen = function(event){
+        setMessageInnerHTML("Status: Server Connected");
+      }
+      websocket.onmessage = function(event){
+        var message = event.data.split(",");
+        console.log(message[0]);
+
+        switch(message[0]) {
+          case "0":
+            setMessageInnerHTML("Status: no such user, please register");
+            break;
+          case "1":
+            localStorage.setItem('username_', document.getElementById('username').value);
+            localStorage.setItem('timeOut_', document.getElementById('timeOut').value);
+            setMessageInnerHTML("Status: redirecting");
+            window.location.href = "game.html";
+            break;
+          case "2":
+            setMessageInnerHTML("Status: wrong password");
+            break;
+          default:
+
+        }
+
+
+      }
+
+      websocket.onclose = function(){
+        setMessageInnerHTML("Status: close");
+      }
+
+      window.onbeforeunload = function(){
+        websocket.close();
+      }
+
+      function setMessageInnerHTML(innerHTML){
+        document.getElementById('message').innerHTML = innerHTML + '<br/>';
+      }
+
+      function closeWebSocket(){
+        websocket.close();
+      }
+
+      function login(){
+        var message = '1' + ',' + document.getElementById('username').value + ',' + document.getElementById('password').value;
+        console.log(message);
+        websocket.send(message);
+      }
+
+      function register(){
+        var message = '2' + ',' + document.getElementById('username').value + ',' + document.getElementById('password').value;
+        console.log(message);
+        websocket.send(message);
+      }
+    </script>
+
+    </body>
+</html>
