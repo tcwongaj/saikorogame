@@ -144,7 +144,6 @@
         window.location.href = "login.html";
       }
 
-      <!--
       function roll(){
         var message = '4,' + localStorage.getItem('username_');
         websocket.send(message);
@@ -171,12 +170,10 @@
         closeWebSocket();
       }
 
-      -->
 
       var inactivityTime = function () {
         var time;
         window.onload = resetTimer;
-        // DOM Events
         document.onmousemove = resetTimer;
         document.onkeypress = resetTimer;
 
@@ -191,7 +188,7 @@
         function resetTimer() {
           clearTimeout(time);
           time = setTimeout(logout2, (localStorage.getItem('timeOut_')*1000))
-          // 1000 milliseconds = 1 second
+          // 1000 ms = 1 s
         }
       };
 
